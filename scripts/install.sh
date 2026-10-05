@@ -22,8 +22,11 @@ bash hermes-agent/scripts/install.sh --dir "$project_dir/hermes-agent" \
   --stage prerequisites --non-interactive --skip-browser --skip-computer-use --skip-setup
 cd hermes-agent
 UV_PROJECT_ENVIRONMENT="$PWD/venv" "$HERMES_HOME/bin/uv" sync \
-  --locked --no-dev --extra messaging --python 3.13
+  --locked --no-dev --extra messaging --extra web --extra pty --python 3.13
 cd "$project_dir"
+mkdir -p "$HERMES_HOME/plugins"
+ln -sfn ../../plugins/telegram-auth "$HERMES_HOME/plugins/telegram-auth"
+"$project_dir/hermes" plugins enable telegram-auth
 mkdir -p "$HOME/.local/bin"
 if [[ ! -e "$HOME/.local/bin/hermes" && ! -L "$HOME/.local/bin/hermes" ]]; then
   printf '#!/usr/bin/env bash\nexec %q "$@"\n' "$project_dir/hermes" > "$HOME/.local/bin/hermes"

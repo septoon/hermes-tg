@@ -1,0 +1,29 @@
+[Unit]
+Description=Hermes web dashboard
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=simple
+User=hermes
+Group=hermes
+WorkingDirectory=/home/hermes/hermes-tg
+Environment=HOME=/home/hermes
+Environment=HERMES_DASHBOARD_PUBLIC_URL=https://hermes.lumastack.ru
+ExecStart=/home/hermes/hermes-tg/hermes dashboard --host 127.0.0.1 --port 9119 --no-open --skip-build
+Restart=on-failure
+RestartSec=10
+TimeoutStopSec=30
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=/home/hermes
+CPUQuota=100%
+MemoryHigh=384M
+MemoryMax=512M
+TasksMax=128
+
+[Install]
+WantedBy=multi-user.target

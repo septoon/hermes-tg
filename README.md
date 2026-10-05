@@ -24,7 +24,7 @@ AITUNNEL_API_KEY=
 ```
 
 Установка использует Python 3.13, зависимости с проверкой хешей из официального
-`uv.lock`, CLI и библиотеки мессенджеров. Локальный браузер, Computer Use,
+`uv.lock`, CLI, web dashboard и библиотеки мессенджеров. Локальный браузер, Computer Use,
 десктопный интерфейс и внешние платные инструменты не устанавливаются.
 Инструменты CLI: терминал, файлы, навыки, память, список задач.
 Лимит агентного цикла — 30 шагов. Telegram использует `TELEGRAM_BOT_TOKEN`
@@ -63,3 +63,34 @@ git check-ignore .env .hermes/.env .hermes/config.yaml
 до 768 МиБ памяти, запись в домашний каталог Hermes и приватный `/tmp`.
 Без настроенного мессенджера gateway обслуживает только планировщик задач;
 чат доступен через CLI. На Mac фоновый сервис не устанавливается.
+
+## Web dashboard
+
+Панель на `https://hermes.lumastack.ru` использует тот же `HERMES_HOME`, что и
+Telegram gateway: модель, настройки Telegram, память, навыки, сессии и cron общие.
+Dashboard запускается отдельным сервисом от пользователя `hermes` на loopback
+`127.0.0.1:9119`; nginx обслуживает HTTPS и WebSocket.
+
+Вход — Telegram OIDC (authorization code + PKCE). Расширение `telegram-auth`
+использует штатный OIDC-провайдер Hermes и допускает только числовые ID из
+`TELEGRAM_ALLOWED_USERS`. Оно проверяет подпись ID token, issuer, audience и срок
+действия; ID веб-сессии совпадает с Telegram ID. Чужой аккаунт не получает доступ.
+Телефон и разрешение на дополнительные сообщения при входе не запрашиваются.
+
+В BotFather → Login Widget настрой Redirect URI
+`https://hermes.lumastack.ru/auth/callback`. Client ID и Client Secret хранятся
+в `.env` как `HERMES_TELEGRAM_OIDC_CLIENT_ID` и
+`HERMES_TELEGRAM_OIDC_CLIENT_SECRET`; это отдельные credentials, не токен бота.
+
+Сборка UI по официальному lockfile:
+
+```bash
+./scripts/build-dashboard.sh
+```
+
+Для VPS нужны только `hermes-agent/hermes_cli/web_dist` и
+`hermes-agent/ui-tui/dist` — node_modules переносить не требуется.
+Сборки и ключи исключены из Git. Шаблоны nginx и systemd находятся в `deploy/`.
+Сертификат выпускается certbot webroot, продление обслуживает системный timer.
+Из сети VPS OAuth Telegram доступен через `149.154.167.220`; scoped запись
+`oauth.telegram.org` в `/etc/hosts` сохраняет TLS/SNI и проверку сертификата.

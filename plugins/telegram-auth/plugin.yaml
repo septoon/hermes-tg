@@ -1,0 +1,5 @@
+name: telegram-auth
+version: 1.0.0
+description: Telegram OIDC sign-in for the Hermes dashboard, restricted to the bot's allowed users.
+kind: backend
+author: septoon
