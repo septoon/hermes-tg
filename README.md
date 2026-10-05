@@ -75,11 +75,23 @@ Telegram gateway: модель, настройки Telegram, память, на�
 Dashboard запускается отдельным сервисом от пользователя `hermes` на loopback
 `127.0.0.1:9119`; nginx обслуживает HTTPS и WebSocket.
 
-Вход — Telegram OIDC (authorization code + PKCE). Расширение `telegram-auth`
-использует штатный OIDC-провайдер Hermes и допускает только числовые ID из
-`TELEGRAM_ALLOWED_USERS`. Оно проверяет подпись ID token, issuer, audience и срок
-действия; ID веб-сессии совпадает с Telegram ID. Чужой аккаунт не получает доступ.
-Телефон и разрешение на дополнительные сообщения при входе не запрашиваются.
+Основной вход — одноразовый код на адрес из `HERMES_LOGIN_EMAIL`. Другие адреса
+не получают письма или доступ. Код действует 10 минут, имеет пять попыток и
+используется один раз. Повторная отправка — через минуту, максимум пять писем в час;
+ограничения сохраняются после перезапуска. Отправка использует SMTP с проверкой TLS.
+`TELEGRAM_ALLOWED_USERS` содержит один уже подтверждённый ID владельца, связанный
+с этой почтой: dashboard и Telegram-бот используют тот же аккаунт и профиль.
+
+Сессия dashboard хранится в `.hermes/dashboard-sessions.sqlite3` с правами `0600`.
+Сервер не завершает её по времени. Выход отзывает сессию, удаление владельца из
+настроек также закрывает доступ. В базе находятся только хеши токенов и кодов.
+Cookies — HttpOnly, Secure, SameSite=Lax; очистка cookies или ограничения их хранения
+самим браузером потребуют нового входа. Перезапуск сервиса сессию не сбрасывает.
+
+Если `HERMES_LOGIN_EMAIL` не задан, доступен Telegram OIDC (authorization code +
+PKCE). Плагин проверяет подпись ID token, issuer, audience, срок и разрешённый ID,
+после чего создаёт собственную долговременную сессию dashboard. Короткий срок
+Telegram ID token не используется как срок сессии панели.
 
 В BotFather → Login Widget настрой Redirect URI
 `https://hermes.lumastack.ru/auth/callback`. Client ID и Client Secret хранятся
@@ -95,6 +107,9 @@ Dashboard запускается отдельным сервисом от пол
 Для VPS нужны только `hermes-agent/hermes_cli/web_dist` и
 `hermes-agent/ui-tui/dist` — node_modules переносить не требуется.
 Сборки и ключи исключены из Git. Шаблоны nginx и systemd находятся в `deploy/`.
+Email-форма и отправка кодов работают в отдельном `hermes-login.service` на
+loopback `127.0.0.1:9120`. Cookies, проверка сессий и WebSocket остаются штатными
+механизмами Hermes; nginx направляет только `/login` и отправку кода в этот сервис.
 Сертификат выпускается certbot webroot, продление обслуживает системный timer.
 Из сети VPS OAuth Telegram доступен через `149.154.167.220`; scoped запись
 `oauth.telegram.org` в `/etc/hosts` сохраняет TLS/SNI и проверку сертификата.

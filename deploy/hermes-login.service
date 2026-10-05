@@ -1,0 +1,27 @@
+[Unit]
+Description=Hermes email login
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=simple
+User=hermes
+Group=hermes
+WorkingDirectory=/home/hermes/hermes-tg
+Environment=HOME=/home/hermes
+Environment=HERMES_HOME=/home/hermes/hermes-tg/.hermes
+ExecStart=/home/hermes/hermes-tg/hermes-agent/venv/bin/python /home/hermes/hermes-tg/plugins/telegram-auth/email_server.py
+Restart=on-failure
+RestartSec=10
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=/home/hermes
+CPUQuota=25%
+MemoryMax=192M
+TasksMax=64
+
+[Install]
+WantedBy=multi-user.target

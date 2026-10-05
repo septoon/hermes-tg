@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Вход — Hermes</title>
+  <style>
+    @font-face{font-family:Collapse;src:url('/fonts/Collapse-Regular.woff2') format('woff2');font-display:swap}
+    *{box-sizing:border-box}body{margin:0;min-height:100svh;display:grid;place-items:center;padding:24px;background:#170d02;color:#fff;font-family:Collapse,system-ui,sans-serif}
+    main{width:100%;max-width:400px}h1{font-size:28px;margin:0 0 10px}.subtitle{color:#c1b8ac;margin:0 0 24px;line-height:1.5}
+    .card{padding:28px;border:1px solid #725017;background:#20170b}label{display:block;font-size:14px;margin-bottom:8px}
+    input,button{width:100%;min-height:46px;font:inherit}input{color:#fff;background:#170d02;border:1px solid #725017;padding:10px 12px;border-radius:0}
+    input:focus-visible,button:focus-visible{outline:2px solid #ffac02;outline-offset:3px}button{margin-top:16px;padding:10px;background:#ffac02;color:#170d02;border:0;font-weight:700;cursor:pointer}button:disabled{opacity:.5;cursor:wait}
+    #message{font-size:14px;line-height:1.5;min-height:21px;margin:16px 0 0;overflow-wrap:anywhere}.note{font-size:13px;color:#b3a592;line-height:1.5;margin:20px 0 0}
+    [hidden]{display:none!important}.secondary{background:transparent;color:#ffac02;border:1px solid #725017;font-size:14px;margin-top:12px}
+    @media(max-width:440px){.card{padding:22px}}
+  </style>
+</head>
+<body>
+<main><section class="card">
+  <h1>Hermes</h1><p class="subtitle">Вход по одноразовому коду на почту.</p>
+  <form id="email-form"><label for="email">Почта</label><input id="email" type="email" autocomplete="email" maxlength="254" required><button type="submit">Получить код</button></form>
+  <form id="code-form" hidden><label for="code">Код из письма</label><input id="code" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{8}" maxlength="8" required><button type="submit">Войти</button><button class="secondary" id="back" type="button">Отправить код ещё раз</button></form>
+  <p id="message" role="status" aria-live="polite"></p><p class="note">Код действует 10 минут. Сессия в этом браузере сохраняется до выхода.</p>
+</section></main>
+<script>
+  const emailForm=document.getElementById('email-form'),codeForm=document.getElementById('code-form'),message=document.getElementById('message');
+  let challenge='',email='';
+  async function post(url,body){const response=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},credentials:'same-origin',body:JSON.stringify(body)});const data=await response.json();if(!response.ok)throw new Error(response.status===401?'Код неверный или истёк.':typeof data.detail==='string'?data.detail:'Не удалось выполнить запрос.');return data;}
+  async function busy(form,work){const button=form.querySelector('button[type="submit"]');button.disabled=true;message.textContent='';try{await work();}catch(error){message.textContent=error.message||'Проверь подключение и попробуй ещё раз.';}finally{button.disabled=false;}}
+  emailForm.addEventListener('submit',event=>{event.preventDefault();void busy(emailForm,async()=>{email=document.getElementById('email').value.trim();message.textContent='Отправляю письмо…';const data=await post('/auth/email/send-code',{email});challenge=data.challenge;emailForm.hidden=true;codeForm.hidden=false;message.textContent=data.message;document.getElementById('code').focus();});});
+  codeForm.addEventListener('submit',event=>{event.preventDefault();void busy(codeForm,async()=>{const data=await post('/auth/password-login',{provider:'email',username:email,password:challenge+'.'+document.getElementById('code').value,next:''});window.location.assign(data.next||'/');});});
+  document.getElementById('back').addEventListener('click',()=>{codeForm.hidden=true;emailForm.hidden=false;document.getElementById('code').value='';message.textContent='Повторная отправка доступна через минуту.';document.getElementById('email').focus();});
+</script>
+</body></html>
