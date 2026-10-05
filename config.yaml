@@ -19,6 +19,12 @@ terminal:
 
 platform_toolsets:
   cli: [terminal, file, skills, memory, todo]
+  telegram: [terminal, file, skills, memory, todo, cronjob]
+
+platforms:
+  telegram:
+    extra:
+      fallback_ips: ["149.154.167.220"]
 
 display:
   streaming: true
