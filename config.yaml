@@ -1,0 +1,24 @@
+providers:
+  aitunnel:
+    api: https://api.aitunnel.ru/v1
+    key_env: AITUNNEL_API_KEY
+    transport: chat_completions
+
+model:
+  provider: custom:aitunnel
+  default: deepseek-v4-flash-0731
+  context_length: 1048576
+
+agent:
+  max_turns: 30
+
+terminal:
+  backend: local
+  cwd: .
+  timeout: 120
+
+platform_toolsets:
+  cli: [terminal, file, skills, memory, todo]
+
+display:
+  streaming: true

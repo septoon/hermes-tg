@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+set -euo pipefail
+project_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
+export HERMES_HOME="$project_dir/.hermes"
+unset PYTHONPATH PYTHONHOME
+export PATH="$HERMES_HOME/node/bin:$HERMES_HOME/bin:$PATH"
+cd "$project_dir"
+exec "$project_dir/hermes-agent/venv/bin/python" "$project_dir/hermes-agent/hermes" "$@"

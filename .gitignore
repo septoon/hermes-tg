@@ -1,0 +1,14 @@
+.env
+.env.*
+!.env.example
+.hermes/
+.runtime/
+.artifacts/
+__pycache__/
+*.py[cod]
+.DS_Store
+*.log
+*.pem
+*.key
+*.p12
+*.pfx
