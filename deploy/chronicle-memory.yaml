@@ -1,0 +1,20 @@
+# Production memory section; merge into HERMES_HOME/config.yaml.
+# Chronicle 5.8.35 is installed separately from the Hermes plugin catalog.
+memory:
+  provider: chronicle
+  db_path: ~/.hermes/commons/db/chronicle/chronicle.db
+  # Chronicle expands git_repo against HOME, not HERMES_HOME: use the full path.
+  git_repo: /home/hermes/hermes-tg/.hermes/commons/db/chronicle/git
+  embeddings:
+    model: chronicle-embeddinggemma
+    base_url: http://127.0.0.1:11434/v1
+    dimensions: 768
+    allow_remote: false
+    max_input_tokens: 512
+    overflow: truncate
+    task_prefixes: false
+    background_timeout: 30
+  curation:
+    drain:
+      per_turn: 4
+      background: true
